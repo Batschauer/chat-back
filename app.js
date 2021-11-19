@@ -1,21 +1,34 @@
 const express = require('express');
-const { open } = require('fs');
+const { open, readFile, writeFile } = require('fs');
 const app = express();
 const port = 3031;
 
-app.get('/singup', async(req, res) => {
+app.post('/singup', async(req, res) => {
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Origin', '*');
+
     const { userName, password } = req.query;
+    console.log(req.query);
+    const storageUsers = await readFile('./data/users.json', function(e) {
+        console.log('Error: ', e);
+    });
+    let _users = storageUsers ? storageUsers.users : [];
 
-    let fileHandle = null;
+    let newUser = {
+        id: _users.length + 1,
+        userName,
+        password,
+        publicKey: '@TODO',
+    };
 
-    try {
-        fileHandle = await open('./data/users.json', 'a+');
-        fileHandle.
-    } finally {
-        await fileHandle ? .close();
-    }
+    _users.push(newUser);
 
-    res.send(`Hello World: ${req.query}`);
+    const json = JSON.stringify({ users: _users });
+    await writeFile('./data/users.json', json, 'utf-8', function(e) {
+        console.log('Error: ', e);
+    });
+
+    res.send(`private key`);
 });
 
 app.listen(port, () => {
