@@ -1,5 +1,6 @@
 const express = require('express');
-const { readFile, writeFile } = require('fs');
+const { getMessages } = require('./utils/message');
+const { addUser, findUser, getUsers } = require('./utils/user');
 const app = express();
 const port = 3031;
 
@@ -8,35 +9,16 @@ app.get('/singup', async(req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
 
     const { userName, password } = req.query;
-    console.log('Query: ', req.query);
 
-    const storageUsers = await require('./data/users.json');
-    let _users = storageUsers ? storageUsers['users'] : [];
+    const user = await addUser(userName, password) || {};
 
-    let newUser = {
-        id: _users.length + 1,
-        userName: userName,
-        password: password,
-        publicKey: '@TODO',
-    };
-
-    _users.push(newUser);
-
-    const json = JSON.stringify({ users: _users });
-    await writeFile('./data/users.json', json, { flag: 'w+' }, function(e) {
-        //console.log('Error: ', e);
-    });
-
-    res.send(`private key`);
+    res.send(user);
 });
 
 app.get('/signin', async(req, res) => {
-    console.log('Recebi a req: ', req.query);
-
     const { userName } = req.query;
-    const _records = await require('./data/users.json');
 
-    const user = _records.users.find((item) => item.userName === userName);
+    const user = await findUser(userName) || {};
 
     res.header('Access-Control-Allow-Headers', '*');
     res.header('Access-Control-Allow-Origin', '*');
@@ -48,6 +30,27 @@ app.get('/signin', async(req, res) => {
         res.status(404);
         res.send('User not found');
     }
+});
+
+app.get('/users', async(req, res) => {
+    const { userName } = req.query;
+    const users = await getUsers(userName) || [];
+
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Origin', '*');
+
+    res.send(users);
+});
+
+app.get('/messages', async(req, res) => {
+    const { from, to } = req.query;
+
+    const messages = await getMessages(from, to) || [];
+
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Origin', '*');
+
+    res.send(messages);
 });
 
 app.listen(port, () => {
