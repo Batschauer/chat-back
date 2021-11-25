@@ -2,6 +2,9 @@ const { writeFile } = require('fs');
 
 async function getMessages(from, to) {
     let storageMessages = await require('../data/messages.json');
+    console.log('storageMessages: ', storageMessages);
+    console.log('from: ', from);
+    console.log('to: ', to);
 
     let messages = [];
 
@@ -15,7 +18,7 @@ async function getMessages(from, to) {
         );
 
         const json = JSON.stringify({...storageMessages });
-        await writeFile(
+        writeFile(
             './data/messages.json',
             json, { flag: 'w+' },
             function(e) {
@@ -24,7 +27,7 @@ async function getMessages(from, to) {
         );
     } else {
         const json = JSON.stringify({ messages: [] });
-        await writeFile(
+        writeFile(
             './data/messages.json',
             json, { flag: 'w+' },
             function(e) {
