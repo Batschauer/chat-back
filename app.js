@@ -1,11 +1,14 @@
 const express = require('express');
-const { getMessages } = require('./utils/message');
+const cors = require('cors');
+const { getMessages, sendMessage } = require('./utils/message');
 const { addUser, findUser, getUsers } = require('./utils/user');
 const app = express();
 const port = 3031;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.options('*', cors());
 
 app.get('/singup', async(req, res) => {
     res.header('Access-Control-Allow-Headers', '*');
@@ -59,15 +62,16 @@ app.get('/messages', async(req, res) => {
 
 app.post('/messages/send', async(req, res) => {
     const { from, to } = req.query;
+    const { message } = req.body;
     console.log('Corpo: ', req.body);
+
+    sendMessage(from, to, message);
 
     res.header('Access-Control-Allow-Headers', '*');
     res.header('Access-Control-Allow-Origin', '*');
 
     res.send('OK');
 });
-
-app.options('')
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
