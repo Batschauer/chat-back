@@ -16,7 +16,7 @@ app.get('/singup', async(req, res) => {
 
     const { userName, password } = req.query;
 
-    const user = await addUser(userName, password) || {};
+    const user = (await addUser(userName, password)) || {};
 
     res.send(user);
 });
@@ -24,7 +24,7 @@ app.get('/singup', async(req, res) => {
 app.get('/signin', async(req, res) => {
     const { userName } = req.query;
 
-    const user = await findUser(userName) || {};
+    const user = (await findUser(userName)) || {};
 
     res.header('Access-Control-Allow-Headers', '*');
     res.header('Access-Control-Allow-Origin', '*');
@@ -40,7 +40,7 @@ app.get('/signin', async(req, res) => {
 
 app.get('/users', async(req, res) => {
     const { userName } = req.query;
-    const users = await getUsers(userName) || [];
+    const users = (await getUsers(userName)) || [];
 
     res.header('Access-Control-Allow-Headers', '*');
     res.header('Access-Control-Allow-Origin', '*');
@@ -52,7 +52,6 @@ app.get('/messages', async(req, res) => {
     const { from, to } = req.query;
 
     const messages = await getMessages(from, to);
-    console.log('Mensagem: ', messages);
 
     res.header('Access-Control-Allow-Headers', '*');
     res.header('Access-Control-Allow-Origin', '*');
@@ -63,14 +62,13 @@ app.get('/messages', async(req, res) => {
 app.post('/messages/send', async(req, res) => {
     const { from, to } = req.query;
     const { message } = req.body;
-    console.log('Corpo: ', req.body);
 
-    sendMessage(from, to, message);
+    const id = await sendMessage(from, to, message);
 
     res.header('Access-Control-Allow-Headers', '*');
     res.header('Access-Control-Allow-Origin', '*');
 
-    res.send('OK');
+    res.send({ id });
 });
 
 app.listen(port, () => {

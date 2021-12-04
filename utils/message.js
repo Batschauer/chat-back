@@ -11,9 +11,9 @@ async function getMessages(from, to) {
             (value) => value.destination === `from_${from}_to_${to}`
         );
 
-        //storageMessages.messages = storageMessages.messages.filter(
-        //    (value) => value.destination !== `from_${from}_to_${to}`
-        //);
+        storageMessages.messages = storageMessages.messages.filter(
+            (value) => value.destination !== `from_${from}_to_${to}`
+        );
 
         const json = JSON.stringify({...storageMessages });
         writeFile('./data/messages.json', json, { flag: 'w+' }, function(e) {
@@ -27,11 +27,14 @@ async function getMessages(from, to) {
     }
 
     let readabbleMessages = [];
-    console.log('messages: ', messages);
 
-    if (Array.isArray(messages)) {
-        readabbleMessages = await Promise.all(messages.map(async({ data }) => await decrypt(to, data)));
-        console.log('Mensagens visiveis: ', readabbleMessages);
+    if (Array.isArray(messages) && messages.length) {
+        readabbleMessages = await Promise.all(
+            messages.map(async({ data, ...rest }) => ({
+                ...rest,
+                data: await decrypt(to, data),
+            }))
+        );
     }
 
     return readabbleMessages;
@@ -40,10 +43,12 @@ async function getMessages(from, to) {
 async function sendMessage(from, to, data) {
     let storageMessages = await require('../data/messages.json');
 
+    const id = Date.now();
+
     let message = {
-        id: Date.now(),
+        id,
         destination: `from_${from}_to_${to}`,
-        data: await encrypt(to, data) || '',
+        data: (await encrypt(to, data)) || '',
     };
 
     storageMessages.messages.push(message);
@@ -52,6 +57,8 @@ async function sendMessage(from, to, data) {
     writeFile('./data/messages.json', json, { flag: 'w+' }, function(e) {
         if (e) console.log('Error: ', e);
     });
+
+    return id;
 }
 
 async function encrypt(user, data) {
@@ -75,7 +82,9 @@ async function decrypt(user, data) {
 async function getPrivate(user) {
     const storageKeys = await require('../data/keys.json');
     if (storageKeys) {
-        const { private } = storageKeys.keys.find((value) => value.user === user);
+        const { private } = storageKeys.keys.find(
+            (value) => value.user === user
+        );
         return private;
     }
 }
@@ -83,7 +92,9 @@ async function getPrivate(user) {
 async function getPublic(user) {
     const storageKeys = await require('../data/keys.json');
     if (storageKeys) {
-        const { public } = storageKeys.keys.find((value) => value.user === user);
+        const { public } = storageKeys.keys.find(
+            (value) => value.user === user
+        );
         return public;
     }
 }
